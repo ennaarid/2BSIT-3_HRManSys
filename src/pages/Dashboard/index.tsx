@@ -22,17 +22,18 @@ import EmployeeForm from "@/components/EmployeeForm";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
+// Update Employee type to match both components
 type Employee = {
   id: number;
   empno: string;
   firstName: string;
   lastName: string;
-  email?: string;
-  phone?: string;
-  hiredate?: string;
-  jobTitle?: string;
-  department?: string;
-  salary?: number;
+  email: string;
+  phone: string;
+  hireDate: string; // Changed from hiredate to hireDate to match EmployeeForm
+  jobTitle: string;
+  department: string;
+  salary: number;
   birthdate?: string;
   gender?: string;
   sepdate?: string;
@@ -67,10 +68,16 @@ const Dashboard = () => {
           empno: emp.empno,
           firstName: emp.firstname || '',
           lastName: emp.lastname || '',
-          hiredate: emp.hiredate,
+          hireDate: emp.hiredate || '', // Changed from hiredate to hireDate
           birthdate: emp.birthdate,
           gender: emp.gender,
-          sepdate: emp.sepdate
+          sepdate: emp.sepdate,
+          // Add required properties from EmployeeForm that may not exist in DB
+          email: '',
+          phone: '',
+          jobTitle: '',
+          department: '',
+          salary: 0
         }));
 
         setEmployees(transformedEmployees);
@@ -84,13 +91,15 @@ const Dashboard = () => {
     fetchEmployees();
   }, []);
 
-  const handleAddEmployee = (newEmployee: Omit<Employee, "id">) => {
+  // Fix the parameter type for handleAddEmployee
+  const handleAddEmployee = (employee: Employee | Omit<Employee, "id">) => {
     // In a real implementation, this would add the employee to Supabase
     toast.info("Please implement this functionality to add employees to Supabase");
     setIsAddDialogOpen(false);
   };
 
-  const handleEditEmployee = (updatedEmployee: Employee) => {
+  // Fix the parameter type for handleEditEmployee
+  const handleEditEmployee = (employee: Employee | Omit<Employee, "id">) => {
     // In a real implementation, this would update the employee in Supabase
     toast.info("Please implement this functionality to update employees in Supabase");
     setIsEditDialogOpen(false);

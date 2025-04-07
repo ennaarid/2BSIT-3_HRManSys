@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,15 +15,15 @@ interface Employee {
   jobTitle: string;
   department: string;
   salary: number;
+  empno?: string;
 }
 
 interface EmployeeFormProps {
   employee?: Employee;
-  onSubmit: (employee: Omit<Employee, 'id'> | Employee) => void;
+  onSubmit: (employee: Employee | Omit<Employee, 'id'>) => void;
   onCancel: () => void;
 }
 
-// Mock job titles and departments
 const jobTitles = [
   "Software Engineer",
   "HR Manager",
@@ -60,6 +59,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
     jobTitle: "",
     department: "",
     salary: 0,
+    empno: employee?.empno || "",
   });
 
   useEffect(() => {
@@ -88,7 +88,6 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validation
     if (
       !formData.firstName ||
       !formData.lastName ||
