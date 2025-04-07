@@ -1,193 +1,132 @@
 
-import { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { 
-  Users, 
-  Briefcase, 
-  Building, 
-  FileText, 
-  LogOut,
+import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { Button } from "../ui/button";
+import {
+  Users,
+  BarChart2,
+  Grid,
+  FileText,
   Menu,
-  Search,
-  X
+  X,
+  LogOut,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+
+interface SidebarItemProps {
+  icon: React.ReactNode;
+  label: string;
+  href: string;
+  active?: boolean;
+}
+
+const SidebarItem = ({ icon, label, href, active }: SidebarItemProps) => {
+  return (
+    <Link
+      to={href}
+      className={cn(
+        "flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900",
+        active && "bg-gray-100 text-gray-900"
+      )}
+    >
+      {icon}
+      {label}
+    </Link>
+  );
+};
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
-const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+const DashboardLayout = ({ children }: DashboardLayoutProps) => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState("");
+  const { signOut, user } = useAuth();
 
-  useEffect(() => {
-    // Check if user is authenticated
-    const isAuthenticated = localStorage.getItem("isAuthenticated");
-    if (!isAuthenticated) {
-      navigate("/login");
-    }
-  }, [navigate]);
-
-  const handleLogout = () => {
-    localStorage.removeItem("isAuthenticated");
-    toast.success("Logged out successfully!");
-    navigate("/login");
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
   };
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchTerm.trim()) {
-      // In a real implementation, this would search in Supabase
-      toast.info(`Searching for "${searchTerm}" - Connect Supabase to enable search functionality`);
-    }
-  };
-
-  const navItems = [
-    {
-      name: "Employees",
-      path: "/dashboard",
-      icon: <Users className="w-5 h-5 mr-2" />,
-    },
-    {
-      name: "Job History",
-      path: "/dashboard/job-history",
-      icon: <FileText className="w-5 h-5 mr-2" />,
-    },
-    {
-      name: "Departments",
-      path: "/dashboard/departments",
-      icon: <Building className="w-5 h-5 mr-2" />,
-    },
-    {
-      name: "Jobs",
-      path: "/dashboard/jobs",
-      icon: <Briefcase className="w-5 h-5 mr-2" />,
-    },
-  ];
-
-  const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Sidebar - desktop */}
-      <div className="hidden md:flex flex-col w-64 bg-white border-r">
-        <div className="p-4 border-b">
-          <h2 className="text-xl font-bold text-hr-blue">HR Compass</h2>
-        </div>
-        <div className="flex-1 overflow-y-auto p-4">
-          <nav className="space-y-2">
-            {navItems.map((item) => (
-              <Link
-                key={item.name}
-                to={item.path}
-                className={`flex items-center px-4 py-2 rounded-md text-sm transition-colors ${
-                  isActive(item.path)
-                    ? "bg-hr-blue text-white"
-                    : "text-hr-darkSlate hover:bg-hr-lightGray"
-                }`}
-              >
-                {item.icon}
-                {item.name}
-              </Link>
-            ))}
+    <div className="min-h-screen bg-gray-50">
+      {/* Mobile Sidebar Toggle */}
+      <Button
+        variant="outline"
+        size="icon"
+        className="fixed top-4 left-4 z-50 md:hidden"
+        onClick={toggleSidebar}
+      >
+        {isSidebarOpen ? <X /> : <Menu />}
+      </Button>
+
+      {/* Sidebar */}
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-40 w-64 bg-white p-4 shadow-lg transition-transform md:translate-x-0",
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <div className="flex flex-col h-full">
+          <div className="mb-8">
+            <h2 className="text-xl font-bold text-gray-900">HR Management</h2>
+          </div>
+
+          <nav className="flex-1 space-y-1">
+            <SidebarItem
+              icon={<Users size={20} />}
+              label="Employees"
+              href="/dashboard"
+              active={location.pathname === "/dashboard"}
+            />
+            <SidebarItem
+              icon={<FileText size={20} />}
+              label="Job History"
+              href="/dashboard/job-history"
+              active={location.pathname === "/dashboard/job-history"}
+            />
+            <SidebarItem
+              icon={<Grid size={20} />}
+              label="Departments"
+              href="/dashboard/departments"
+              active={location.pathname === "/dashboard/departments"}
+            />
+            <SidebarItem
+              icon={<BarChart2 size={20} />}
+              label="Jobs"
+              href="/dashboard/jobs"
+              active={location.pathname === "/dashboard/jobs"}
+            />
           </nav>
-        </div>
-        <div className="p-4 border-t">
-          <button
-            onClick={handleLogout}
-            className="flex items-center text-hr-slate hover:text-hr-blue transition-colors w-full"
-          >
-            <LogOut className="w-5 h-5 mr-2" />
-            <span>Logout</span>
-          </button>
-        </div>
-      </div>
 
-      {/* Mobile menu */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-40 md:hidden">
-          <div className="fixed inset-0 bg-black opacity-25" onClick={() => setIsMobileMenuOpen(false)}></div>
-          <div className="fixed inset-y-0 left-0 w-64 bg-white z-50 shadow-lg">
-            <div className="p-4 border-b flex justify-between items-center">
-              <h2 className="text-xl font-bold text-hr-blue">HR Compass</h2>
-              <button onClick={() => setIsMobileMenuOpen(false)}>
-                <X className="w-5 h-5" />
-              </button>
+          <div className="pt-4 mt-auto border-t">
+            <div className="text-sm font-medium mb-2">
+              {user?.email}
             </div>
-            <div className="flex-1 overflow-y-auto p-4">
-              <nav className="space-y-2">
-                {navItems.map((item) => (
-                  <Link
-                    key={item.name}
-                    to={item.path}
-                    className={`flex items-center px-4 py-2 rounded-md text-sm transition-colors ${
-                      isActive(item.path)
-                        ? "bg-hr-blue text-white"
-                        : "text-hr-darkSlate hover:bg-hr-lightGray"
-                    }`}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {item.icon}
-                    {item.name}
-                  </Link>
-                ))}
-              </nav>
-            </div>
-            <div className="p-4 border-t">
-              <button
-                onClick={handleLogout}
-                className="flex items-center text-hr-slate hover:text-hr-blue transition-colors w-full"
-              >
-                <LogOut className="w-5 h-5 mr-2" />
-                <span>Logout</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top header */}
-        <header className="bg-white border-b p-4 flex justify-between items-center">
-          <div className="flex items-center">
-            <button
-              className="md:hidden mr-4"
-              onClick={() => setIsMobileMenuOpen(true)}
+            <Button 
+              variant="outline" 
+              className="w-full flex items-center gap-2"
+              onClick={() => signOut()}
             >
-              <Menu className="w-6 h-6" />
-            </button>
-            <h1 className="text-xl font-semibold hidden md:block">Dashboard</h1>
+              <LogOut size={16} />
+              Sign out
+            </Button>
           </div>
-          <div className="flex-1 mx-4 max-w-lg">
-            <form onSubmit={handleSearch}>
-              <div className="relative">
-                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  type="search"
-                  placeholder="Search employees..."
-                  className="w-full pl-8"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-            </form>
-          </div>
-          <div className="flex items-center">
-            <div className="w-8 h-8 rounded-full bg-hr-blue text-white flex items-center justify-center">
-              <span>A</span>
-            </div>
-          </div>
-        </header>
+        </div>
+      </aside>
 
-        {/* Main content area */}
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
-      </div>
+      {/* Main Content */}
+      <main
+        className={cn(
+          "min-h-screen transition-all md:ml-64",
+          isSidebarOpen ? "ml-64" : "ml-0"
+        )}
+      >
+        <div className="container mx-auto p-4 md:p-6">
+          {children}
+        </div>
+      </main>
     </div>
   );
 };

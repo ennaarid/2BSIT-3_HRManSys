@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/Layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,51 +17,30 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import EmployeeForm from "@/components/EmployeeForm";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
-// Mock data
-const initialEmployees = [
-  {
-    id: 1,
-    firstName: "John",
-    lastName: "Doe",
-    email: "john.doe@example.com",
-    phone: "123-456-7890",
-    hireDate: "2020-01-15",
-    jobTitle: "Software Engineer",
-    department: "Engineering",
-    salary: 85000,
-  },
-  {
-    id: 2,
-    firstName: "Jane",
-    lastName: "Smith",
-    email: "jane.smith@example.com",
-    phone: "234-567-8901",
-    hireDate: "2019-05-20",
-    jobTitle: "HR Manager",
-    department: "Human Resources",
-    salary: 78000,
-  },
-  {
-    id: 3,
-    firstName: "Robert",
-    lastName: "Johnson",
-    email: "robert.johnson@example.com",
-    phone: "345-678-9012",
-    hireDate: "2021-03-10",
-    jobTitle: "Marketing Specialist",
-    department: "Marketing",
-    salary: 65000,
-  },
-];
-
-type Employee = typeof initialEmployees[0];
+type Employee = {
+  id: number;
+  empno: string;
+  firstName: string;
+  lastName: string;
+  email?: string;
+  phone?: string;
+  hiredate?: string;
+  jobTitle?: string;
+  department?: string;
+  salary?: number;
+  birthdate?: string;
+  gender?: string;
+  sepdate?: string;
+};
 
 const Dashboard = () => {
-  const [employees, setEmployees] = useState<Employee[]>(initialEmployees);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -69,30 +48,58 @@ const Dashboard = () => {
   const [searchResults, setSearchResults] = useState<Employee[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
+  // Fetch employees from Supabase
+  useEffect(() => {
+    async function fetchEmployees() {
+      try {
+        setIsLoading(true);
+        const { data, error } = await supabase
+          .from('employee')
+          .select('*');
+
+        if (error) {
+          throw error;
+        }
+
+        // Transform the data to match our expected Employee type
+        const transformedEmployees: Employee[] = data.map(emp => ({
+          id: parseInt(emp.empno),
+          empno: emp.empno,
+          firstName: emp.firstname || '',
+          lastName: emp.lastname || '',
+          hiredate: emp.hiredate,
+          birthdate: emp.birthdate,
+          gender: emp.gender,
+          sepdate: emp.sepdate
+        }));
+
+        setEmployees(transformedEmployees);
+      } catch (error: any) {
+        toast.error('Error fetching employees: ' + error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchEmployees();
+  }, []);
+
   const handleAddEmployee = (newEmployee: Omit<Employee, "id">) => {
-    const id = employees.length > 0 ? Math.max(...employees.map((emp) => emp.id)) + 1 : 1;
-    const employeeWithId = { ...newEmployee, id };
-    setEmployees([...employees, employeeWithId as Employee]);
+    // In a real implementation, this would add the employee to Supabase
+    toast.info("Please implement this functionality to add employees to Supabase");
     setIsAddDialogOpen(false);
-    toast.success("Employee added successfully!");
   };
 
   const handleEditEmployee = (updatedEmployee: Employee) => {
-    setEmployees(
-      employees.map((emp) =>
-        emp.id === updatedEmployee.id ? updatedEmployee : emp
-      )
-    );
+    // In a real implementation, this would update the employee in Supabase
+    toast.info("Please implement this functionality to update employees in Supabase");
     setIsEditDialogOpen(false);
-    toast.success("Employee updated successfully!");
   };
 
   const handleDeleteEmployee = () => {
-    if (currentEmployee) {
-      setEmployees(employees.filter((emp) => emp.id !== currentEmployee.id));
-      setIsDeleteDialogOpen(false);
-      toast.success("Employee deleted successfully!");
-    }
+    // In a real implementation, this would delete the employee from Supabase
+    toast.info("Please implement this functionality to delete employees from Supabase");
+    setIsDeleteDialogOpen(false);
   };
 
   const openEditDialog = (employee: Employee) => {
@@ -106,6 +113,16 @@ const Dashboard = () => {
   };
 
   const displayEmployees = isSearching ? searchResults : employees;
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex justify-center items-center h-[60vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -123,10 +140,10 @@ const Dashboard = () => {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Employee ID</TableHead>
                 <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Department</TableHead>
-                <TableHead>Job Title</TableHead>
+                <TableHead>Hire Date</TableHead>
+                <TableHead>Gender</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -134,12 +151,12 @@ const Dashboard = () => {
               {displayEmployees.length > 0 ? (
                 displayEmployees.map((employee) => (
                   <TableRow key={employee.id}>
+                    <TableCell>{employee.empno}</TableCell>
                     <TableCell>
                       {employee.firstName} {employee.lastName}
                     </TableCell>
-                    <TableCell>{employee.email}</TableCell>
-                    <TableCell>{employee.department}</TableCell>
-                    <TableCell>{employee.jobTitle}</TableCell>
+                    <TableCell>{employee.hiredate ? new Date(employee.hiredate).toLocaleDateString() : 'N/A'}</TableCell>
+                    <TableCell>{employee.gender || 'N/A'}</TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
                         <Button

@@ -1,4 +1,5 @@
 
+import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/Layout/DashboardLayout";
 import {
   Table,
@@ -9,92 +10,28 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-// Mock data for job history
-const jobHistory = [
-  {
-    id: 1,
-    employeeId: 1,
-    employeeName: "John Doe",
-    startDate: "2020-01-15",
-    endDate: "2021-06-30",
-    jobTitle: "Junior Software Engineer",
-    department: "Engineering",
-    salary: 75000,
-  },
-  {
-    id: 2,
-    employeeId: 1,
-    employeeName: "John Doe",
-    startDate: "2021-07-01",
-    endDate: null,
-    jobTitle: "Software Engineer",
-    department: "Engineering",
-    salary: 85000,
-  },
-  {
-    id: 3,
-    employeeId: 2,
-    employeeName: "Jane Smith",
-    startDate: "2019-05-20",
-    endDate: "2020-12-31",
-    jobTitle: "HR Specialist",
-    department: "Human Resources",
-    salary: 65000,
-  },
-  {
-    id: 4,
-    employeeId: 2,
-    employeeName: "Jane Smith",
-    startDate: "2021-01-01",
-    endDate: null,
-    jobTitle: "HR Manager",
-    department: "Human Resources",
-    salary: 78000,
-  },
-  {
-    id: 5,
-    employeeId: 3,
-    employeeName: "Robert Johnson",
-    startDate: "2021-03-10",
-    endDate: null,
-    jobTitle: "Marketing Specialist",
-    department: "Marketing",
-    salary: 65000,
-  },
-  {
-    id: 6,
-    employeeId: 4,
-    employeeName: "Emily Wilson",
-    startDate: "2018-09-15",
-    endDate: "2020-05-30",
-    jobTitle: "Sales Associate",
-    department: "Sales",
-    salary: 55000,
-  },
-  {
-    id: 7,
-    employeeId: 4,
-    employeeName: "Emily Wilson",
-    startDate: "2020-06-01",
-    endDate: "2022-01-15",
-    jobTitle: "Sales Representative",
-    department: "Sales",
-    salary: 62000,
-  },
-  {
-    id: 8,
-    employeeId: 4,
-    employeeName: "Emily Wilson",
-    startDate: "2022-01-16",
-    endDate: null,
-    jobTitle: "Sales Manager",
-    department: "Sales",
-    salary: 85000,
-  },
-];
+type JobHistory = {
+  empno: string;
+  jobcode: string;
+  deptcode: string | null;
+  effdate: string;
+  salary: number | null;
+  employeeName?: string;
+  jobTitle?: string;
+  department?: string;
+};
 
-const JobHistory = () => {
+const JobHistoryPage = () => {
+  const [jobHistory, setJobHistory] = useState<JobHistory[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [employees, setEmployees] = useState<{ [key: string]: { firstname: string, lastname: string } }>({});
+  const [jobs, setJobs] = useState<{ [key: string]: { jobdesc: string } }>({});
+  const [departments, setDepartments] = useState<{ [key: string]: { deptname: string } }>({});
+
   // Function to format date
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "Present";
@@ -125,6 +62,83 @@ const JobHistory = () => {
     }
   };
 
+  // Fetch all required data
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setIsLoading(true);
+        
+        // Fetch job history
+        const { data: historyData, error: historyError } = await supabase
+          .from('jobhistory')
+          .select('*')
+          .order('effdate', { ascending: false });
+
+        if (historyError) throw historyError;
+
+        // Fetch employees
+        const { data: employeeData, error: employeeError } = await supabase
+          .from('employee')
+          .select('empno, firstname, lastname');
+
+        if (employeeError) throw employeeError;
+
+        // Convert employee data to a lookup map
+        const employeeMap: { [key: string]: { firstname: string, lastname: string } } = {};
+        employeeData.forEach((emp) => {
+          employeeMap[emp.empno] = { firstname: emp.firstname, lastname: emp.lastname };
+        });
+
+        // Fetch jobs
+        const { data: jobData, error: jobError } = await supabase
+          .from('job')
+          .select('jobcode, jobdesc');
+
+        if (jobError) throw jobError;
+
+        // Convert job data to a lookup map
+        const jobMap: { [key: string]: { jobdesc: string } } = {};
+        jobData.forEach((job) => {
+          jobMap[job.jobcode] = { jobdesc: job.jobdesc };
+        });
+
+        // Fetch departments
+        const { data: deptData, error: deptError } = await supabase
+          .from('department')
+          .select('deptcode, deptname');
+
+        if (deptError) throw deptError;
+
+        // Convert department data to a lookup map
+        const deptMap: { [key: string]: { deptname: string } } = {};
+        deptData.forEach((dept) => {
+          deptMap[dept.deptcode] = { deptname: dept.deptname };
+        });
+
+        setEmployees(employeeMap);
+        setJobs(jobMap);
+        setDepartments(deptMap);
+        setJobHistory(historyData);
+      } catch (error: any) {
+        toast.error('Error fetching data: ' + error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchData();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex justify-center items-center h-[60vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -144,25 +158,39 @@ const JobHistory = () => {
                   <TableHead>Job Title</TableHead>
                   <TableHead>Department</TableHead>
                   <TableHead>Start Date</TableHead>
-                  <TableHead>End Date</TableHead>
-                  <TableHead>Duration</TableHead>
                   <TableHead>Salary</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {jobHistory.map((record) => (
-                  <TableRow key={record.id}>
-                    <TableCell>{record.employeeName}</TableCell>
-                    <TableCell>{record.jobTitle}</TableCell>
-                    <TableCell>{record.department}</TableCell>
-                    <TableCell>{formatDate(record.startDate)}</TableCell>
-                    <TableCell>{formatDate(record.endDate)}</TableCell>
-                    <TableCell>
-                      {calculateDuration(record.startDate, record.endDate)}
+                {jobHistory.length > 0 ? (
+                  jobHistory.map((record, index) => (
+                    <TableRow key={`${record.empno}-${record.jobcode}-${record.effdate}-${index}`}>
+                      <TableCell>
+                        {employees[record.empno] 
+                          ? `${employees[record.empno].firstname} ${employees[record.empno].lastname}` 
+                          : record.empno}
+                      </TableCell>
+                      <TableCell>
+                        {jobs[record.jobcode]?.jobdesc || record.jobcode}
+                      </TableCell>
+                      <TableCell>
+                        {record.deptcode && departments[record.deptcode]
+                          ? departments[record.deptcode].deptname
+                          : (record.deptcode || 'N/A')}
+                      </TableCell>
+                      <TableCell>{formatDate(record.effdate)}</TableCell>
+                      <TableCell>
+                        {record.salary ? `$${record.salary.toLocaleString()}` : 'N/A'}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-4">
+                      No job history records found
                     </TableCell>
-                    <TableCell>${record.salary.toLocaleString()}</TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
           </CardContent>
@@ -172,4 +200,4 @@ const JobHistory = () => {
   );
 };
 
-export default JobHistory;
+export default JobHistoryPage;

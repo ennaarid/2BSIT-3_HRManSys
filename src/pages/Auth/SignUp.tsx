@@ -1,12 +1,12 @@
 
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -17,7 +17,7 @@ const SignUp = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const navigate = useNavigate();
+  const { signUp } = useAuth();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -32,23 +32,20 @@ const SignUp = () => {
     
     // Basic validation
     if (!formData.email || !formData.password || !formData.fullName) {
-      toast.error("Please fill in all required fields");
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      toast.error("Passwords do not match");
       return;
     }
 
     setIsLoading(true);
     
-    // In a real implementation, here you would connect to Supabase for authentication
-    toast.error("Please connect Supabase to enable authentication functionality");
-    setIsLoading(false);
-
-    // Successfully signed up scenario (would normally only happen after successful Supabase signup)
-    // navigate("/login");
+    try {
+      await signUp(formData.email, formData.password, formData.fullName);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

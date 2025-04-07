@@ -12,6 +12,8 @@ import JobHistory from "./pages/Dashboard/JobHistory";
 import Departments from "./pages/Dashboard/Departments";
 import Jobs from "./pages/Dashboard/Jobs";
 import NotFound from "./pages/NotFound";
+import { AuthProvider } from "./hooks/useAuth";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 // Create a new QueryClient instance outside of the component
 const queryClient = new QueryClient();
@@ -20,22 +22,40 @@ const App = () => {
   return (
     <React.StrictMode>
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Navigate to="/login" replace />} />
-              <Route path="/signup" element={<SignUp />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/dashboard/job-history" element={<JobHistory />} />
-              <Route path="/dashboard/departments" element={<Departments />} />
-              <Route path="/dashboard/jobs" element={<Jobs />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
+        <BrowserRouter>
+          <AuthProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <Routes>
+                <Route path="/" element={<Navigate to="/login" replace />} />
+                <Route path="/signup" element={<SignUp />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/job-history" element={
+                  <ProtectedRoute>
+                    <JobHistory />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/departments" element={
+                  <ProtectedRoute>
+                    <Departments />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/jobs" element={
+                  <ProtectedRoute>
+                    <Jobs />
+                  </ProtectedRoute>
+                } />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </TooltipProvider>
+          </AuthProvider>
+        </BrowserRouter>
       </QueryClientProvider>
     </React.StrictMode>
   );

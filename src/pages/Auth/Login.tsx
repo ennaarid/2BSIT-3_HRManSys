@@ -1,12 +1,12 @@
 
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const Login = () => {
   const [credentials, setCredentials] = useState({
@@ -15,7 +15,7 @@ const Login = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const navigate = useNavigate();
+  const { signIn } = useAuth();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -30,22 +30,15 @@ const Login = () => {
     
     // Basic validation
     if (!credentials.email || !credentials.password) {
-      toast.error("Please enter both email and password");
       return;
     }
     
     setIsLoading(true);
     
-    // In a real implementation, here you would connect to Supabase for authentication
-    toast.error("Please connect Supabase to enable authentication functionality");
-    setIsLoading(false);
-    
-    // Simulate successful login for demo purposes
-    // In a real app, this would only happen after successful authentication
-    if (credentials.email === "demo@example.com" && credentials.password === "password") {
-      localStorage.setItem("isAuthenticated", "true");
-      toast.success("Login successful!");
-      navigate("/dashboard");
+    try {
+      await signIn(credentials.email, credentials.password);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -111,14 +104,6 @@ const Login = () => {
               )}
             </Button>
           </form>
-
-          <div className="mt-4 text-center text-sm">
-            <p>
-              For demo purposes, use: <br />
-              Email: demo@example.com <br />
-              Password: password
-            </p>
-          </div>
         </CardContent>
         <CardFooter className="flex flex-col items-center justify-center">
           <p className="mt-2 text-center text-sm">

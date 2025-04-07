@@ -1,4 +1,5 @@
 
+import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/Layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,79 +12,105 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { Loader2 } from "lucide-react";
 
-// Mock data for jobs
-const jobs = [
-  {
-    id: 1,
-    title: "Software Engineer",
-    minSalary: 80000,
-    maxSalary: 120000,
-    department: "Engineering",
-    openPositions: 3,
-  },
-  {
-    id: 2,
-    title: "HR Manager",
-    minSalary: 70000,
-    maxSalary: 95000,
-    department: "Human Resources",
-    openPositions: 1,
-  },
-  {
-    id: 3,
-    title: "Marketing Specialist",
-    minSalary: 60000,
-    maxSalary: 85000,
-    department: "Marketing",
-    openPositions: 2,
-  },
-  {
-    id: 4,
-    title: "Sales Representative",
-    minSalary: 50000,
-    maxSalary: 90000,
-    department: "Sales",
-    openPositions: 5,
-  },
-  {
-    id: 5,
-    title: "Financial Analyst",
-    minSalary: 75000,
-    maxSalary: 95000,
-    department: "Finance",
-    openPositions: 2,
-  },
-  {
-    id: 6,
-    title: "Project Manager",
-    minSalary: 85000,
-    maxSalary: 130000,
-    department: "Engineering",
-    openPositions: 1,
-  },
-  {
-    id: 7,
-    title: "Data Scientist",
-    minSalary: 90000,
-    maxSalary: 140000,
-    department: "Engineering",
-    openPositions: 2,
-  },
-  {
-    id: 8,
-    title: "Product Designer",
-    minSalary: 80000,
-    maxSalary: 110000,
-    department: "Product",
-    openPositions: 1,
-  }
-];
+type Job = {
+  jobcode: string;
+  jobdesc: string | null;
+  avgSalary?: number;
+  employeeCount?: number;
+};
 
 const Jobs = () => {
-  const handleEditJob = (id: number) => {
-    toast.info("Please connect Supabase to enable job editing");
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [jobStats, setJobStats] = useState<Record<string, { count: number, avgSalary: number }>>({});
+
+  useEffect(() => {
+    async function fetchJobs() {
+      try {
+        setIsLoading(true);
+        
+        // Fetch jobs
+        const { data, error } = await supabase
+          .from('job')
+          .select('*');
+
+        if (error) throw error;
+
+        // Fetch job history to get salary data and employee counts
+        const { data: jobHistoryData, error: jobHistoryError } = await supabase
+          .from('jobhistory')
+          .select('jobcode, empno, salary');
+
+        if (jobHistoryError) throw jobHistoryError;
+
+        // Calculate stats per job
+        const stats: Record<string, { employees: Set<string>, salaries: number[], count: number }> = {};
+        jobHistoryData.forEach((record) => {
+          if (!stats[record.jobcode]) {
+            stats[record.jobcode] = {
+              employees: new Set(),
+              salaries: [],
+              count: 0
+            };
+          }
+          
+          stats[record.jobcode].employees.add(record.empno);
+          if (record.salary) stats[record.jobcode].salaries.push(record.salary);
+          stats[record.jobcode].count += 1;
+        });
+
+        // Convert to final format
+        const jobStatsMap: Record<string, { count: number, avgSalary: number }> = {};
+        Object.entries(stats).forEach(([jobcode, data]) => {
+          const avgSalary = data.salaries.length > 0 
+            ? data.salaries.reduce((sum, val) => sum + val, 0) / data.salaries.length 
+            : 0;
+          
+          jobStatsMap[jobcode] = {
+            count: data.employees.size,
+            avgSalary
+          };
+        });
+
+        setJobStats(jobStatsMap);
+        setJobs(data);
+      } catch (error: any) {
+        toast.error('Error fetching jobs: ' + error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchJobs();
+  }, []);
+
+  const handleEditJob = (jobcode: string) => {
+    toast.info("Please implement this functionality to edit jobs in Supabase");
   };
+
+  // Calculate total number of employees across all jobs
+  const totalEmployees = Object.values(jobStats).reduce((sum, stat) => sum + stat.count, 0);
+  
+  // Calculate average salary across all jobs
+  const allSalaries = Object.values(jobStats)
+    .filter(stat => stat.avgSalary > 0)
+    .map(stat => stat.avgSalary);
+  const overallAvgSalary = allSalaries.length > 0 
+    ? allSalaries.reduce((sum, val) => sum + val, 0) / allSalaries.length 
+    : 0;
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex justify-center items-center h-[60vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -92,7 +119,7 @@ const Jobs = () => {
           <h2 className="text-2xl font-bold">Jobs</h2>
           <Button 
             className="bg-hr-blue hover:bg-blue-700"
-            onClick={() => toast.info("Please connect Supabase to add jobs")}
+            onClick={() => toast.info("Please implement this functionality to add jobs in Supabase")}
           >
             Add Job
           </Button>
@@ -110,22 +137,20 @@ const Jobs = () => {
           
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-md font-medium">Open Positions</CardTitle>
+              <CardTitle className="text-md font-medium">Total Employees</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">
-                {jobs.reduce((total, job) => total + job.openPositions, 0)}
-              </div>
+              <div className="text-3xl font-bold">{totalEmployees}</div>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-md font-medium">Average Max Salary</CardTitle>
+              <CardTitle className="text-md font-medium">Average Salary</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">
-                ${Math.round(jobs.reduce((sum, job) => sum + job.maxSalary, 0) / jobs.length).toLocaleString()}
+                ${Math.round(overallAvgSalary).toLocaleString()}
               </div>
             </CardContent>
           </Card>
@@ -139,27 +164,30 @@ const Jobs = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Job Title</TableHead>
-                  <TableHead>Department</TableHead>
-                  <TableHead>Salary Range</TableHead>
-                  <TableHead>Open Positions</TableHead>
+                  <TableHead>Job Code</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Employees</TableHead>
+                  <TableHead>Avg. Salary</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {jobs.map((job) => (
-                  <TableRow key={job.id}>
-                    <TableCell className="font-medium">{job.title}</TableCell>
-                    <TableCell>{job.department}</TableCell>
+                  <TableRow key={job.jobcode}>
+                    <TableCell className="font-medium">{job.jobcode}</TableCell>
+                    <TableCell>{job.jobdesc || 'N/A'}</TableCell>
+                    <TableCell>{jobStats[job.jobcode]?.count || 0}</TableCell>
                     <TableCell>
-                      ${job.minSalary.toLocaleString()} - ${job.maxSalary.toLocaleString()}
+                      {jobStats[job.jobcode]?.avgSalary 
+                        ? `$${Math.round(jobStats[job.jobcode].avgSalary).toLocaleString()}`
+                        : 'N/A'
+                      }
                     </TableCell>
-                    <TableCell>{job.openPositions}</TableCell>
                     <TableCell>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleEditJob(job.id)}
+                        onClick={() => handleEditJob(job.jobcode)}
                       >
                         Edit
                       </Button>
