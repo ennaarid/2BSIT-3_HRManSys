@@ -17,7 +17,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Plus, Pencil, Trash2, Loader2, Search } from "lucide-react";
 import EmployeeForm from "@/components/EmployeeForm";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -46,8 +47,8 @@ const Dashboard = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [currentEmployee, setCurrentEmployee] = useState<Employee | null>(null);
-  const [searchResults, setSearchResults] = useState<Employee[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
 
   // Fetch employees from Supabase
   useEffect(() => {
@@ -68,7 +69,7 @@ const Dashboard = () => {
           empno: emp.empno,
           firstName: emp.firstname || '',
           lastName: emp.lastname || '',
-          hireDate: emp.hiredate || '', // Changed from hiredate to hireDate
+          hireDate: emp.hiredate || '',
           birthdate: emp.birthdate,
           gender: emp.gender,
           sepdate: emp.sepdate,
@@ -81,6 +82,7 @@ const Dashboard = () => {
         }));
 
         setEmployees(transformedEmployees);
+        setFilteredEmployees(transformedEmployees);
       } catch (error: any) {
         toast.error('Error fetching employees: ' + error.message);
       } finally {
@@ -90,6 +92,20 @@ const Dashboard = () => {
 
     fetchEmployees();
   }, []);
+
+  // Handle search input changes
+  useEffect(() => {
+    const results = employees.filter((employee) => {
+      const fullName = `${employee.firstName} ${employee.lastName}`.toLowerCase();
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        fullName.includes(searchLower) ||
+        employee.empno.toLowerCase().includes(searchLower)
+      );
+    });
+    
+    setFilteredEmployees(results);
+  }, [searchTerm, employees]);
 
   // Fix the parameter type for handleAddEmployee
   const handleAddEmployee = (employee: Employee | Omit<Employee, "id">) => {
@@ -121,8 +137,6 @@ const Dashboard = () => {
     setIsDeleteDialogOpen(true);
   };
 
-  const displayEmployees = isSearching ? searchResults : employees;
-
   if (isLoading) {
     return (
       <DashboardLayout>
@@ -143,6 +157,18 @@ const Dashboard = () => {
             Add Employee
           </Button>
         </div>
+        
+        {/* Search bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+          <Input
+            type="text"
+            placeholder="Search employees by name or ID..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 w-full max-w-sm"
+          />
+        </div>
 
         {/* Employee table */}
         <div className="bg-white rounded-md shadow">
@@ -157,8 +183,8 @@ const Dashboard = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {displayEmployees.length > 0 ? (
-                displayEmployees.map((employee) => (
+              {filteredEmployees.length > 0 ? (
+                filteredEmployees.map((employee) => (
                   <TableRow key={employee.id}>
                     <TableCell>{employee.empno}</TableCell>
                     <TableCell>
@@ -190,7 +216,7 @@ const Dashboard = () => {
               ) : (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-4">
-                    No employees found
+                    {searchTerm ? 'No matching employees found' : 'No employees found'}
                   </TableCell>
                 </TableRow>
               )}
