@@ -164,7 +164,7 @@ const Dashboard = () => {
                     <TableCell>
                       {employee.firstName} {employee.lastName}
                     </TableCell>
-                    <TableCell>{employee.hiredate ? new Date(employee.hiredate).toLocaleDateString() : 'N/A'}</TableCell>
+                    <TableCell>{employee.hireDate ? new Date(employee.hireDate).toLocaleDateString() : 'N/A'}</TableCell>
                     <TableCell>{employee.gender || 'N/A'}</TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
