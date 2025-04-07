@@ -31,7 +31,7 @@ type Employee = {
   lastName: string;
   email: string;
   phone: string;
-  hireDate: string; // Changed from hiredate to hireDate to match EmployeeForm
+  hireDate: string; 
   jobTitle: string;
   department: string;
   salary: number;
@@ -49,49 +49,50 @@ const Dashboard = () => {
   const [currentEmployee, setCurrentEmployee] = useState<Employee | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch employees from Supabase
   useEffect(() => {
-    async function fetchEmployees() {
-      try {
-        setIsLoading(true);
-        const { data, error } = await supabase
-          .from('employee')
-          .select('*');
-
-        if (error) {
-          throw error;
-        }
-
-        // Transform the data to match our expected Employee type
-        const transformedEmployees: Employee[] = data.map(emp => ({
-          id: parseInt(emp.empno),
-          empno: emp.empno,
-          firstName: emp.firstname || '',
-          lastName: emp.lastname || '',
-          hireDate: emp.hiredate || '',
-          birthdate: emp.birthdate,
-          gender: emp.gender,
-          sepdate: emp.sepdate,
-          // Add required properties from EmployeeForm that may not exist in DB
-          email: '',
-          phone: '',
-          jobTitle: '',
-          department: '',
-          salary: 0
-        }));
-
-        setEmployees(transformedEmployees);
-        setFilteredEmployees(transformedEmployees);
-      } catch (error: any) {
-        toast.error('Error fetching employees: ' + error.message);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
     fetchEmployees();
   }, []);
+
+  const fetchEmployees = async () => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('employee')
+        .select('*');
+
+      if (error) {
+        throw error;
+      }
+
+      // Transform the data to match our expected Employee type
+      const transformedEmployees: Employee[] = data.map(emp => ({
+        id: parseInt(emp.empno),
+        empno: emp.empno,
+        firstName: emp.firstname || '',
+        lastName: emp.lastname || '',
+        hireDate: emp.hiredate || '',
+        birthdate: emp.birthdate,
+        gender: emp.gender,
+        sepdate: emp.sepdate,
+        // Add required properties from EmployeeForm that may not exist in DB
+        email: '',
+        phone: '',
+        jobTitle: '',
+        department: '',
+        salary: 0
+      }));
+
+      setEmployees(transformedEmployees);
+      setFilteredEmployees(transformedEmployees);
+    } catch (error: any) {
+      toast.error('Error fetching employees: ' + error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   // Handle search input changes
   useEffect(() => {
@@ -107,24 +108,96 @@ const Dashboard = () => {
     setFilteredEmployees(results);
   }, [searchTerm, employees]);
 
-  // Fix the parameter type for handleAddEmployee
-  const handleAddEmployee = (employee: Employee | Omit<Employee, "id">) => {
-    // In a real implementation, this would add the employee to Supabase
-    toast.info("Please implement this functionality to add employees to Supabase");
-    setIsAddDialogOpen(false);
+  // Add employee to Supabase
+  const handleAddEmployee = async (employee: Employee | Omit<Employee, "id">) => {
+    try {
+      setIsSubmitting(true);
+      
+      // Extract the required fields for Supabase employee table
+      const { firstName, lastName, hireDate, empno } = employee;
+      
+      const { data, error } = await supabase
+        .from('employee')
+        .insert([
+          { 
+            empno: empno,
+            firstname: firstName,
+            lastname: lastName,
+            hiredate: hireDate,
+            // Add other fields as needed
+            gender: employee.gender || null,
+            birthdate: employee.birthdate || null
+          }
+        ])
+        .select();
+      
+      if (error) throw error;
+      
+      toast.success("Employee added successfully!");
+      await fetchEmployees(); // Refresh the employee list
+      setIsAddDialogOpen(false);
+    } catch (error: any) {
+      toast.error('Error adding employee: ' + error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  // Fix the parameter type for handleEditEmployee
-  const handleEditEmployee = (employee: Employee | Omit<Employee, "id">) => {
-    // In a real implementation, this would update the employee in Supabase
-    toast.info("Please implement this functionality to update employees in Supabase");
-    setIsEditDialogOpen(false);
+  // Edit employee in Supabase
+  const handleEditEmployee = async (employee: Employee | Omit<Employee, "id">) => {
+    try {
+      setIsSubmitting(true);
+      
+      if ('id' in employee && currentEmployee) {
+        const { firstName, lastName, hireDate, gender, birthdate, sepdate } = employee;
+        
+        const { error } = await supabase
+          .from('employee')
+          .update({ 
+            firstname: firstName,
+            lastname: lastName,
+            hiredate: hireDate,
+            gender: gender || null,
+            birthdate: birthdate || null,
+            sepdate: sepdate || null
+          })
+          .eq('empno', currentEmployee.empno);
+        
+        if (error) throw error;
+        
+        toast.success("Employee updated successfully!");
+        await fetchEmployees(); // Refresh the employee list
+        setIsEditDialogOpen(false);
+      }
+    } catch (error: any) {
+      toast.error('Error updating employee: ' + error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleDeleteEmployee = () => {
-    // In a real implementation, this would delete the employee from Supabase
-    toast.info("Please implement this functionality to delete employees from Supabase");
-    setIsDeleteDialogOpen(false);
+  // Delete employee from Supabase
+  const handleDeleteEmployee = async () => {
+    try {
+      setIsSubmitting(true);
+      
+      if (currentEmployee) {
+        const { error } = await supabase
+          .from('employee')
+          .delete()
+          .eq('empno', currentEmployee.empno);
+        
+        if (error) throw error;
+        
+        toast.success("Employee deleted successfully!");
+        await fetchEmployees(); // Refresh the employee list
+        setIsDeleteDialogOpen(false);
+      }
+    } catch (error: any) {
+      toast.error('Error deleting employee: ' + error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const openEditDialog = (employee: Employee) => {
@@ -236,6 +309,7 @@ const Dashboard = () => {
             <EmployeeForm
               onSubmit={handleAddEmployee}
               onCancel={() => setIsAddDialogOpen(false)}
+              isSubmitting={isSubmitting}
             />
           </DialogContent>
         </Dialog>
@@ -252,6 +326,7 @@ const Dashboard = () => {
                 employee={currentEmployee}
                 onSubmit={handleEditEmployee}
                 onCancel={() => setIsEditDialogOpen(false)}
+                isSubmitting={isSubmitting}
               />
             )}
           </DialogContent>
@@ -270,14 +345,21 @@ const Dashboard = () => {
               <Button
                 variant="outline"
                 onClick={() => setIsDeleteDialogOpen(false)}
+                disabled={isSubmitting}
               >
                 Cancel
               </Button>
               <Button
                 variant="destructive"
                 onClick={handleDeleteEmployee}
+                disabled={isSubmitting}
               >
-                Delete
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : "Delete"}
               </Button>
             </div>
           </DialogContent>
