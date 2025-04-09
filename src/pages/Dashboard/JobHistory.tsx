@@ -133,7 +133,7 @@ const JobHistoryPage = () => {
     return (
       <DashboardLayout>
         <div className="flex justify-center items-center h-[60vh]">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+          <Loader2 className="h-8 w-8 animate-spin text-green-500" /> {/* Changed from blue to green */}
         </div>
       </DashboardLayout>
     );

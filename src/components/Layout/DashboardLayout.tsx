@@ -70,7 +70,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       >
         <div className="flex flex-col h-full">
           <div className="mb-8">
-            <h2 className="text-xl font-bold text-gray-900">HR Management</h2>
+            <h2 className="text-xl font-bold text-gray-900">Celadon Peak</h2>
           </div>
 
           <nav className="flex-1 space-y-1">

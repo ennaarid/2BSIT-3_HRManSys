@@ -64,9 +64,9 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				hr: {
-					blue: '#2563eb',
+					blue: '#279F49', // Changed from blue to green
 					slate: '#64748b',
-					skyBlue: '#0ea5e9',
+					skyBlue: '#279F49', // Changed from skyBlue to green
 					lightGray: '#f8fafc',
 					darkSlate: '#1e293b',
 				},

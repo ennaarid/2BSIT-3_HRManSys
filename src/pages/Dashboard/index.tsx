@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/Layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -23,7 +22,6 @@ import EmployeeForm from "@/components/EmployeeForm";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
-// Update Employee type to match both components
 type Employee = {
   id: number;
   empno: string;
@@ -51,7 +49,6 @@ const Dashboard = () => {
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch employees from Supabase
   useEffect(() => {
     fetchEmployees();
   }, []);
@@ -67,7 +64,6 @@ const Dashboard = () => {
         throw error;
       }
 
-      // Transform the data to match our expected Employee type
       const transformedEmployees: Employee[] = data.map(emp => ({
         id: parseInt(emp.empno),
         empno: emp.empno,
@@ -77,7 +73,6 @@ const Dashboard = () => {
         birthdate: emp.birthdate,
         gender: emp.gender,
         sepdate: emp.sepdate,
-        // Add required properties from EmployeeForm that may not exist in DB
         email: '',
         phone: '',
         jobTitle: '',
@@ -94,7 +89,6 @@ const Dashboard = () => {
     }
   }
 
-  // Handle search input changes
   useEffect(() => {
     const results = employees.filter((employee) => {
       const fullName = `${employee.firstName} ${employee.lastName}`.toLowerCase();
@@ -108,12 +102,10 @@ const Dashboard = () => {
     setFilteredEmployees(results);
   }, [searchTerm, employees]);
 
-  // Add employee to Supabase
   const handleAddEmployee = async (employee: Employee | Omit<Employee, "id">) => {
     try {
       setIsSubmitting(true);
       
-      // Extract the required fields for Supabase employee table
       const { firstName, lastName, hireDate, empno } = employee;
       
       const { data, error } = await supabase
@@ -124,7 +116,6 @@ const Dashboard = () => {
             firstname: firstName,
             lastname: lastName,
             hiredate: hireDate,
-            // Add other fields as needed
             gender: employee.gender || null,
             birthdate: employee.birthdate || null
           }
@@ -134,7 +125,7 @@ const Dashboard = () => {
       if (error) throw error;
       
       toast.success("Employee added successfully!");
-      await fetchEmployees(); // Refresh the employee list
+      await fetchEmployees();
       setIsAddDialogOpen(false);
     } catch (error: any) {
       toast.error('Error adding employee: ' + error.message);
@@ -143,7 +134,6 @@ const Dashboard = () => {
     }
   };
 
-  // Edit employee in Supabase
   const handleEditEmployee = async (employee: Employee | Omit<Employee, "id">) => {
     try {
       setIsSubmitting(true);
@@ -166,7 +156,7 @@ const Dashboard = () => {
         if (error) throw error;
         
         toast.success("Employee updated successfully!");
-        await fetchEmployees(); // Refresh the employee list
+        await fetchEmployees();
         setIsEditDialogOpen(false);
       }
     } catch (error: any) {
@@ -176,7 +166,6 @@ const Dashboard = () => {
     }
   };
 
-  // Delete employee from Supabase
   const handleDeleteEmployee = async () => {
     try {
       setIsSubmitting(true);
@@ -190,7 +179,7 @@ const Dashboard = () => {
         if (error) throw error;
         
         toast.success("Employee deleted successfully!");
-        await fetchEmployees(); // Refresh the employee list
+        await fetchEmployees();
         setIsDeleteDialogOpen(false);
       }
     } catch (error: any) {
@@ -214,7 +203,7 @@ const Dashboard = () => {
     return (
       <DashboardLayout>
         <div className="flex justify-center items-center h-[60vh]">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+          <Loader2 className="h-8 w-8 animate-spin text-green-500" />
         </div>
       </DashboardLayout>
     );
@@ -225,13 +214,12 @@ const Dashboard = () => {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold">Employees</h2>
-          <Button onClick={() => setIsAddDialogOpen(true)} className="bg-hr-blue hover:bg-blue-700">
+          <Button onClick={() => setIsAddDialogOpen(true)} className="bg-[#279F49] hover:bg-green-700">
             <Plus className="mr-2 h-4 w-4" />
             Add Employee
           </Button>
         </div>
         
-        {/* Search bar */}
         <div className="relative">
           <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
           <Input
@@ -243,7 +231,6 @@ const Dashboard = () => {
           />
         </div>
 
-        {/* Employee table */}
         <div className="bg-white rounded-md shadow">
           <Table>
             <TableHeader>
@@ -297,7 +284,6 @@ const Dashboard = () => {
           </Table>
         </div>
 
-        {/* Add Employee Dialog */}
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
@@ -314,7 +300,6 @@ const Dashboard = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Edit Employee Dialog */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
@@ -332,7 +317,6 @@ const Dashboard = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Delete Confirmation Dialog */}
         <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
