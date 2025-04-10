@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard/index";
 import JobHistory from "./pages/Dashboard/JobHistory";
 import Departments from "./pages/Dashboard/Departments";
 import Jobs from "./pages/Dashboard/Jobs";
+import DatabaseTables from "./pages/Dashboard/DatabaseTables";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./hooks/useAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -49,6 +50,11 @@ const App = () => {
                 <Route path="/dashboard/jobs" element={
                   <ProtectedRoute>
                     <Jobs />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/database" element={
+                  <ProtectedRoute>
+                    <DatabaseTables />
                   </ProtectedRoute>
                 } />
                 <Route path="*" element={<NotFound />} />

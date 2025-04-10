@@ -10,6 +10,7 @@ import {
   Menu,
   X,
   LogOut,
+  Database,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -97,6 +98,12 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               label="Jobs"
               href="/dashboard/jobs"
               active={location.pathname === "/dashboard/jobs"}
+            />
+            <SidebarItem
+              icon={<Database size={20} />}
+              label="Database Tables"
+              href="/dashboard/database"
+              active={location.pathname === "/dashboard/database"}
             />
           </nav>
 
