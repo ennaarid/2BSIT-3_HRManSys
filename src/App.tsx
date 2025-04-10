@@ -12,6 +12,7 @@ import JobHistory from "./pages/Dashboard/JobHistory";
 import Departments from "./pages/Dashboard/Departments";
 import Jobs from "./pages/Dashboard/Jobs";
 import DatabaseTables from "./pages/Dashboard/DatabaseTables";
+import DashboardSummary from "./pages/Dashboard/Summary";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./hooks/useAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -33,6 +34,11 @@ const App = () => {
                 <Route path="/signup" element={<SignUp />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <DashboardSummary />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/employees" element={
                   <ProtectedRoute>
                     <Dashboard />
                   </ProtectedRoute>

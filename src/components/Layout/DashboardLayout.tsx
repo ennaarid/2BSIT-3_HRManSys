@@ -11,6 +11,7 @@ import {
   X,
   LogOut,
   Database,
+  LayoutDashboard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -76,10 +77,16 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
           <nav className="flex-1 space-y-1">
             <SidebarItem
-              icon={<Users size={20} />}
-              label="Employees"
+              icon={<LayoutDashboard size={20} />}
+              label="Dashboard"
               href="/dashboard"
               active={location.pathname === "/dashboard"}
+            />
+            <SidebarItem
+              icon={<Users size={20} />}
+              label="Employees"
+              href="/dashboard/employees"
+              active={location.pathname === "/dashboard/employees"}
             />
             <SidebarItem
               icon={<FileText size={20} />}
