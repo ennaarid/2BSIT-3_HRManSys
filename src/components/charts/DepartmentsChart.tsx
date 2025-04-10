@@ -87,9 +87,15 @@ export const DepartmentsChart = () => {
     };
   }, {});
 
-  // Custom tooltip formatter function
+  // Custom tooltip format function
   const formatTooltip = (value: number, name: string) => {
     return [`${value} employees`, name];
+  };
+
+  // Custom tooltip component to use with recharts
+  const CustomTooltip = (props: any) => {
+    if (!props.active || !props.payload) return null;
+    return <ChartTooltipContent {...props} formatter={formatTooltip} />;
   };
 
   return (
@@ -111,11 +117,7 @@ export const DepartmentsChart = () => {
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
           </Pie>
-          <Tooltip 
-            content={(props) => {
-              return <ChartTooltipContent {...props} formatter={formatTooltip} />;
-            }}
-          />
+          <Tooltip content={<CustomTooltip />} />
         </PieChart>
       </ChartContainer>
     </div>

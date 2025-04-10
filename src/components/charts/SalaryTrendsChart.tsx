@@ -87,6 +87,12 @@ export const SalaryTrendsChart = () => {
     employeeCount: { color: "#9b87f5" } // Purple
   };
 
+  // Custom tooltip component to use with recharts
+  const CustomTooltip = (props: any) => {
+    if (!props.active || !props.payload) return null;
+    return <ChartTooltipContent {...props} />;
+  };
+
   return (
     <div className="h-full">
       <ChartContainer config={chartConfig}>
@@ -98,11 +104,7 @@ export const SalaryTrendsChart = () => {
           <XAxis dataKey="date" />
           <YAxis yAxisId="left" orientation="left" stroke="#279F49" />
           <YAxis yAxisId="right" orientation="right" stroke="#9b87f5" />
-          <Tooltip 
-            content={(props) => {
-              return <ChartTooltipContent {...props} />;
-            }}
-          />
+          <Tooltip content={<CustomTooltip />} />
           <Legend />
           <Line 
             yAxisId="left"

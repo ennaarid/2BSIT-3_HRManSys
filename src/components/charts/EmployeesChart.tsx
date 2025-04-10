@@ -105,9 +105,15 @@ export const EmployeesChart = () => {
     }
   };
 
-  // Custom tooltip formatter function
+  // Custom tooltip format function
   const formatTooltip = (value: number, name: string) => {
     return [`${value} employees`, name];
+  };
+
+  // Custom tooltip component to use with recharts
+  const CustomTooltip = (props: any) => {
+    if (!props.active || !props.payload) return null;
+    return <ChartTooltipContent {...props} formatter={formatTooltip} />;
   };
 
   return (
@@ -120,11 +126,7 @@ export const EmployeesChart = () => {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="gender" />
               <YAxis />
-              <Tooltip 
-                content={(props) => {
-                  return <ChartTooltipContent {...props} formatter={formatTooltip} />;
-                }}
-              />
+              <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="count" name="Employees" fill="var(--color-Male)" />
             </BarChart>
           </ChartContainer>
@@ -138,11 +140,7 @@ export const EmployeesChart = () => {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="range" />
               <YAxis />
-              <Tooltip 
-                content={(props) => {
-                  return <ChartTooltipContent {...props} formatter={formatTooltip} />;
-                }}
-              />
+              <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="count" name="Employees" fill="var(--color-5+ years)" />
             </BarChart>
           </ChartContainer>
