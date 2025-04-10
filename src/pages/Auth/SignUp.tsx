@@ -52,6 +52,13 @@ const SignUp = () => {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
+          <div className="flex justify-center mb-4">
+            <img 
+              src="/lovable-uploads/1cc71118-905e-457f-9be2-465ec21f818f.png" 
+              alt="Celadon Peak Logo" 
+              className="h-16 w-auto"
+            />
+          </div>
           <CardTitle className="text-2xl font-bold text-center">Create an account</CardTitle>
           <CardDescription className="text-center">
             Enter your information to create an HR account

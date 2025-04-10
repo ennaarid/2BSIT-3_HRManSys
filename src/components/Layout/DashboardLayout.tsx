@@ -71,8 +71,12 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         )}
       >
         <div className="flex flex-col h-full">
-          <div className="mb-8">
-            <h2 className="text-xl font-bold text-gray-900">Celadon Peak</h2>
+          <div className="mb-8 flex items-center justify-center">
+            <img 
+              src="/lovable-uploads/1cc71118-905e-457f-9be2-465ec21f818f.png" 
+              alt="Celadon Peak Logo" 
+              className="h-10 w-auto"
+            />
           </div>
 
           <nav className="flex-1 space-y-1">
