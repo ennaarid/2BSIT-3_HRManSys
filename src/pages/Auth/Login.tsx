@@ -48,7 +48,7 @@ const Login = () => {
         <CardHeader className="space-y-1">
           <div className="flex justify-center mb-4">
             <img 
-              src="/lovable-uploads/1cc71118-905e-457f-9be2-465ec21f818f.png" 
+              src="/lovable-uploads/c6ad52d7-3179-4282-8dd9-9206e34e4368.png" 
               alt="Celadon Peak Logo" 
               className="h-16 w-auto"
             />
