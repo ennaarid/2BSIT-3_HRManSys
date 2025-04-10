@@ -105,6 +105,11 @@ export const EmployeesChart = () => {
     }
   };
 
+  // Custom tooltip formatter function
+  const formatTooltip = (value: number, name: string) => {
+    return [`${value} employees`, name];
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
       <div>
@@ -115,13 +120,10 @@ export const EmployeesChart = () => {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="gender" />
               <YAxis />
-              <ChartTooltip 
-                content={(props) => (
-                  <ChartTooltipContent 
-                    {...props} 
-                    formatter={(value, name) => [`${value} employees`, name]}
-                  />
-                )}
+              <Tooltip 
+                content={(props) => {
+                  return <ChartTooltipContent {...props} formatter={formatTooltip} />;
+                }}
               />
               <Bar dataKey="count" name="Employees" fill="var(--color-Male)" />
             </BarChart>
@@ -136,13 +138,10 @@ export const EmployeesChart = () => {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="range" />
               <YAxis />
-              <ChartTooltip 
-                content={(props) => (
-                  <ChartTooltipContent 
-                    {...props} 
-                    formatter={(value, name) => [`${value} employees`, name]}
-                  />
-                )}
+              <Tooltip 
+                content={(props) => {
+                  return <ChartTooltipContent {...props} formatter={formatTooltip} />;
+                }}
               />
               <Bar dataKey="count" name="Employees" fill="var(--color-5+ years)" />
             </BarChart>

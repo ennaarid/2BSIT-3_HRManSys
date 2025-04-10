@@ -87,6 +87,11 @@ export const DepartmentsChart = () => {
     };
   }, {});
 
+  // Custom tooltip formatter function
+  const formatTooltip = (value: number, name: string) => {
+    return [`${value} employees`, name];
+  };
+
   return (
     <div className="h-full">
       <ChartContainer config={pieConfig} className="h-full">
@@ -106,13 +111,10 @@ export const DepartmentsChart = () => {
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
           </Pie>
-          <ChartTooltip 
-            content={(props) => (
-              <ChartTooltipContent 
-                {...props} 
-                formatter={(value, name) => [`${value} employees`, name]}
-              />
-            )}
+          <Tooltip 
+            content={(props) => {
+              return <ChartTooltipContent {...props} formatter={formatTooltip} />;
+            }}
           />
         </PieChart>
       </ChartContainer>

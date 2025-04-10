@@ -110,10 +110,10 @@ export const JobsChart = () => {
           />
           <YAxis yAxisId="left" orientation="left" stroke="#279F49" />
           <YAxis yAxisId="right" orientation="right" stroke="#9b87f5" />
-          <ChartTooltip 
-            content={(props) => (
-              <ChartTooltipContent {...props} />
-            )}
+          <Tooltip 
+            content={(props) => {
+              return <ChartTooltipContent {...props} />;
+            }}
           />
           <Legend />
           <Bar 
