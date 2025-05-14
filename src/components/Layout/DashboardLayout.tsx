@@ -1,149 +1,186 @@
 
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Button } from "../ui/button";
+import { ReactNode, useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   Users,
-  BarChart2,
-  Grid,
-  FileText,
-  Menu,
-  X,
-  LogOut,
-  Database,
   LayoutDashboard,
+  Clock,
+  Building,
+  Briefcase,
+  Database,
+  Menu,
+  LogOut,
+  X,
+  UserCog,
+  Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { useUserRole } from "@/hooks/useUserRole";
+import { useMobile } from "@/hooks/use-mobile";
 
-interface SidebarItemProps {
-  icon: React.ReactNode;
-  label: string;
-  href: string;
-  active?: boolean;
-}
-
-const SidebarItem = ({ icon, label, href, active }: SidebarItemProps) => {
-  return (
-    <Link
-      to={href}
-      className={cn(
-        "flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900",
-        active && "bg-gray-100 text-gray-900"
-      )}
-    >
-      {icon}
-      {label}
-    </Link>
-  );
+type Props = {
+  children: ReactNode;
 };
 
-interface DashboardLayoutProps {
-  children: React.ReactNode;
-}
-
-const DashboardLayout = ({ children }: DashboardLayoutProps) => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+const DashboardLayout = ({ children }: Props) => {
+  const { user, signOut } = useAuth();
+  const { isAdmin } = useUserRole();
+  const navigate = useNavigate();
   const location = useLocation();
-  const { signOut, user } = useAuth();
-
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
+  const { isMobile } = useMobile();
+  const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
+  
+  useEffect(() => {
+    // Close sidebar on mobile when route changes
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
+  }, [location.pathname, isMobile]);
+  
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/login");
   };
-
+  
+  const menuItems = [
+    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Employees", href: "/dashboard/employees", icon: Users },
+    { name: "Job History", href: "/dashboard/job-history", icon: Clock },
+    { name: "Departments", href: "/dashboard/departments", icon: Building },
+    { name: "Jobs", href: "/dashboard/jobs", icon: Briefcase },
+    { name: "Database", href: "/dashboard/database", icon: Database },
+  ];
+  
+  const adminMenuItems = [
+    { name: "User Management", href: "/dashboard/user-management", icon: UserCog },
+    { name: "Deleted Records", href: "/dashboard/deleted-records", icon: Trash2 },
+  ];
+  
+  const userInitials = user?.email
+    ? user.email.substring(0, 2).toUpperCase()
+    : "U";
+  
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Mobile Sidebar Toggle */}
-      <Button
-        variant="outline"
-        size="icon"
-        className="fixed top-4 left-4 z-50 md:hidden"
-        onClick={toggleSidebar}
-      >
-        {isSidebarOpen ? <X /> : <Menu />}
-      </Button>
-
+      {/* Mobile sidebar toggle */}
+      <div className="fixed top-0 left-0 right-0 z-10 flex items-center justify-between bg-white p-4 border-b lg:hidden">
+        <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)}>
+          {sidebarOpen ? (
+            <X className="h-6 w-6" />
+          ) : (
+            <Menu className="h-6 w-6" />
+          )}
+          <span className="sr-only">Toggle Menu</span>
+        </Button>
+        <div className="font-bold text-lg">HR Database</div>
+        <Avatar className="h-9 w-9">
+          <AvatarFallback className="bg-hr-blue text-white">
+            {userInitials}
+          </AvatarFallback>
+        </Avatar>
+      </div>
+      
+      {/* Sidebar Overlay */}
+      {isMobile && sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-20"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 w-64 bg-white p-4 shadow-lg transition-transform md:translate-x-0",
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+          "fixed inset-y-0 left-0 w-64 bg-white shadow-md z-30 transform transition-transform duration-300 ease-in-out",
+          isMobile && !sidebarOpen ? "-translate-x-full" : "translate-x-0"
         )}
       >
         <div className="flex flex-col h-full">
-          <div className="mb-8 flex items-center justify-center">
-            <img 
-              src="/lovable-uploads/c6ad52d7-3179-4282-8dd9-9206e34e4368.png" 
-              alt="Celadon Peak Logo" 
-              className="h-10 w-auto"
-            />
+          <div className="p-4 flex items-center justify-center border-b">
+            <h1 className="text-xl font-bold text-center">HR Database</h1>
           </div>
+          
+          <div className="flex-1 overflow-y-auto py-4">
+            <nav className="px-2 space-y-1">
+              {menuItems.map((item) => (
+                <Link
+                  key={item.href}
+                  to={item.href}
+                  className={cn(
+                    "flex items-center px-4 py-2 text-gray-700 rounded-md hover:bg-gray-100",
+                    location.pathname === item.href && "bg-gray-100 font-medium"
+                  )}
+                  onClick={isMobile ? () => setSidebarOpen(false) : undefined}
+                >
+                  <item.icon className="h-5 w-5 mr-3 text-gray-500" />
+                  {item.name}
+                </Link>
+              ))}
 
-          <nav className="flex-1 space-y-1">
-            <SidebarItem
-              icon={<LayoutDashboard size={20} />}
-              label="Dashboard"
-              href="/dashboard"
-              active={location.pathname === "/dashboard"}
-            />
-            <SidebarItem
-              icon={<Users size={20} />}
-              label="Employees"
-              href="/dashboard/employees"
-              active={location.pathname === "/dashboard/employees"}
-            />
-            <SidebarItem
-              icon={<FileText size={20} />}
-              label="Job History"
-              href="/dashboard/job-history"
-              active={location.pathname === "/dashboard/job-history"}
-            />
-            <SidebarItem
-              icon={<Grid size={20} />}
-              label="Departments"
-              href="/dashboard/departments"
-              active={location.pathname === "/dashboard/departments"}
-            />
-            <SidebarItem
-              icon={<BarChart2 size={20} />}
-              label="Jobs"
-              href="/dashboard/jobs"
-              active={location.pathname === "/dashboard/jobs"}
-            />
-            <SidebarItem
-              icon={<Database size={20} />}
-              label="Database Tables"
-              href="/dashboard/database"
-              active={location.pathname === "/dashboard/database"}
-            />
-          </nav>
-
-          <div className="pt-4 mt-auto border-t">
-            <div className="text-sm font-medium mb-2">
-              {user?.email}
+              {isAdmin && (
+                <>
+                  <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Admin
+                  </div>
+                  
+                  {adminMenuItems.map((item) => (
+                    <Link
+                      key={item.href}
+                      to={item.href}
+                      className={cn(
+                        "flex items-center px-4 py-2 text-gray-700 rounded-md hover:bg-gray-100",
+                        location.pathname === item.href && "bg-gray-100 font-medium"
+                      )}
+                      onClick={isMobile ? () => setSidebarOpen(false) : undefined}
+                    >
+                      <item.icon className="h-5 w-5 mr-3 text-gray-500" />
+                      {item.name}
+                    </Link>
+                  ))}
+                </>
+              )}
+            </nav>
+          </div>
+          
+          <div className="p-4 border-t">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="bg-hr-blue text-white">
+                    {userInitials}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="ml-3">
+                  <p className="text-sm font-medium truncate max-w-[120px]">
+                    {user?.email}
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleSignOut}
+                title="Sign out"
+              >
+                <LogOut className="h-5 w-5 text-gray-500" />
+              </Button>
             </div>
-            <Button 
-              variant="outline" 
-              className="w-full flex items-center gap-2"
-              onClick={() => signOut()}
-            >
-              <LogOut size={16} />
-              Sign out
-            </Button>
           </div>
         </div>
       </aside>
-
-      {/* Main Content */}
+      
+      {/* Main content */}
       <main
         className={cn(
-          "min-h-screen transition-all md:ml-64",
-          isSidebarOpen ? "ml-64" : "ml-0"
+          "transition-all duration-300 ease-in-out",
+          sidebarOpen ? "lg:ml-64" : "",
+          isMobile ? "mt-16 p-4" : "p-8"
         )}
       >
-        <div className="container mx-auto p-4 md:p-6">
-          {children}
-        </div>
+        {children}
       </main>
     </div>
   );
