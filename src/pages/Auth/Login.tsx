@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -53,11 +52,7 @@ const Login = () => {
   const checkIfBlocked = async (userId: string) => {
     try {
       const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .order('updated_at', { ascending: false })
-        .limit(1)
+        .rpc('get_user_role_by_id', { user_id: userId })
         .single();
 
       if (error && error.code !== 'PGRST116') {

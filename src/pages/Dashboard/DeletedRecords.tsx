@@ -68,35 +68,36 @@ export default function DeletedRecords() {
       
       if (error) throw error;
 
+      if (!data || data.length === 0) {
+        setDeletedRecords([]);
+        return;
+      }
+
       const formattedRecords: DeletedRecord[] = data.map(record => {
         let recordId = '';
         
-        switch (tableName) {
-          case 'employee':
-            recordId = record.empno;
-            break;
-          case 'job':
-            recordId = record.jobcode;
-            break;
-          case 'department':
-            recordId = record.deptcode;
-            break;
-          case 'jobhistory':
-            recordId = `${record.empno},${record.jobcode},${record.effdate}`;
-            break;
+        if (tableName === 'employee' && 'empno' in record) {
+          recordId = record.empno;
+        } else if (tableName === 'job' && 'jobcode' in record) {
+          recordId = record.jobcode;
+        } else if (tableName === 'department' && 'deptcode' in record) {
+          recordId = record.deptcode;
+        } else if (tableName === 'jobhistory' && 'empno' in record && 'jobcode' in record && 'effdate' in record) {
+          recordId = `${record.empno},${record.jobcode},${record.effdate}`;
         }
         
         return {
           id: recordId,
           displayName: getDisplayName(record),
           tableName,
-          deletedAt: record.stamp
+          deletedAt: record.stamp || new Date().toISOString()
         };
       });
 
       setDeletedRecords(formattedRecords);
     } catch (error: any) {
       toast.error(`Error fetching deleted ${tableName} records: ${error.message}`);
+      setDeletedRecords([]);
     } finally {
       setLoading(false);
     }

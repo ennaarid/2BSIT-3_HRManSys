@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { toast } from "sonner";
+import { UserRole as UserRoleType, UserPermissionRecord } from "@/types/supabase";
 
 export type UserRole = 'admin' | 'user' | 'blocked';
 

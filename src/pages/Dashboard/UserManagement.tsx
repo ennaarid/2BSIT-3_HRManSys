@@ -58,39 +58,46 @@ export default function UserManagement() {
       
       if (authError) throw authError;
 
-      // Get all user roles
-      const { data: userRoles, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('user_id, role');
+      // Get all user roles using RPC
+      const { data: userRolesData, error: rolesError } = await supabase
+        .rpc('get_user_roles_all');
       
       if (rolesError) throw rolesError;
 
-      // Get all user permissions
-      const { data: userPermissions, error: permissionsError } = await supabase
-        .from('user_permissions')
-        .select('user_id, table_name, can_add, can_edit, can_delete');
+      // Convert to a map for easier lookup
+      const userRoles = new Map();
+      userRolesData?.forEach(item => {
+        userRoles.set(item.user_id, item.role);
+      });
+
+      // Get all user permissions using RPC
+      const { data: userPermissionsData, error: permissionsError } = await supabase
+        .rpc('get_all_user_permissions');
       
       if (permissionsError) throw permissionsError;
 
+      // Group permissions by user
+      const permissionsByUser = new Map<string, TablePermission[]>();
+      userPermissionsData?.forEach(p => {
+        if (!permissionsByUser.has(p.user_id)) {
+          permissionsByUser.set(p.user_id, []);
+        }
+        permissionsByUser.get(p.user_id)?.push({
+          table_name: p.table_name,
+          can_add: p.can_add,
+          can_edit: p.can_edit,
+          can_delete: p.can_delete
+        });
+      });
+
       // Combine the data
       const userList: UserData[] = authUsers.users.map(authUser => {
-        const userRole = userRoles.find(r => r.user_id === authUser.id);
-        
-        const permissions = userPermissions
-          .filter(p => p.user_id === authUser.id)
-          .map(p => ({
-            table_name: p.table_name,
-            can_add: p.can_add,
-            can_edit: p.can_edit,
-            can_delete: p.can_delete
-          }));
-        
         return {
           id: authUser.id,
           email: authUser.email || 'No email',
-          role: (userRole?.role as UserRole) || 'user',
+          role: (userRoles.get(authUser.id) || 'user') as UserRole,
           created_at: authUser.created_at,
-          permissions
+          permissions: permissionsByUser.get(authUser.id) || []
         };
       });
 
