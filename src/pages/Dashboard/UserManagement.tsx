@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/Layout/DashboardLayout";
 import {
@@ -20,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole, UserRole, TablePermission } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
+import { supabaseExtended } from "@/integrations/supabase/extendedClient";
 import { toast } from "sonner";
 import { Loader2, Key, User, Settings } from "lucide-react";
 import UserRoleForm from "@/components/UserManagement/UserRoleForm";
@@ -59,36 +59,46 @@ export default function UserManagement() {
       if (authError) throw authError;
 
       // Get all user roles using RPC
-      const { data: userRolesData, error: rolesError } = await supabase
+      const { data: userRolesData, error: rolesError } = await supabaseExtended
         .rpc('get_user_roles_all');
       
       if (rolesError) throw rolesError;
 
       // Convert to a map for easier lookup
-      const userRoles = new Map();
-      userRolesData?.forEach(item => {
-        userRoles.set(item.user_id, item.role);
-      });
+      const userRoles = new Map<string, string>();
+      
+      if (userRolesData) {
+        userRolesData.forEach(item => {
+          userRoles.set(item.user_id, item.role);
+        });
+      }
 
       // Get all user permissions using RPC
-      const { data: userPermissionsData, error: permissionsError } = await supabase
+      const { data: userPermissionsData, error: permissionsError } = await supabaseExtended
         .rpc('get_all_user_permissions');
       
       if (permissionsError) throw permissionsError;
 
       // Group permissions by user
       const permissionsByUser = new Map<string, TablePermission[]>();
-      userPermissionsData?.forEach(p => {
-        if (!permissionsByUser.has(p.user_id)) {
-          permissionsByUser.set(p.user_id, []);
-        }
-        permissionsByUser.get(p.user_id)?.push({
-          table_name: p.table_name,
-          can_add: p.can_add,
-          can_edit: p.can_edit,
-          can_delete: p.can_delete
+      
+      if (userPermissionsData) {
+        userPermissionsData.forEach(p => {
+          if (!permissionsByUser.has(p.user_id)) {
+            permissionsByUser.set(p.user_id, []);
+          }
+          
+          const userPerms = permissionsByUser.get(p.user_id);
+          if (userPerms) {
+            userPerms.push({
+              table_name: p.table_name,
+              can_add: p.can_add,
+              can_edit: p.can_edit,
+              can_delete: p.can_delete
+            });
+          }
         });
-      });
+      }
 
       // Combine the data
       const userList: UserData[] = authUsers.users.map(authUser => {

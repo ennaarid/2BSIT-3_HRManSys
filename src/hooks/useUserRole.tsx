@@ -1,9 +1,9 @@
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabaseExtended } from "@/integrations/supabase/extendedClient";
 import { useAuth } from "./useAuth";
 import { toast } from "sonner";
-import { UserRole as UserRoleType, UserPermissionRecord } from "@/types/supabase";
+import { UserRole as UserRoleType } from "@/types/supabase";
 
 export type UserRole = 'admin' | 'user' | 'blocked';
 
@@ -32,7 +32,7 @@ export function useUserRole() {
       setLoading(true);
 
       // Fetch user role using RPC instead of direct table query
-      const { data: roleData, error: roleError } = await supabase
+      const { data: roleData, error: roleError } = await supabaseExtended
         .rpc('get_user_role_by_id', { user_id: user.id })
         .single();
 
@@ -41,14 +41,15 @@ export function useUserRole() {
       }
 
       // Fetch user permissions using RPC instead of direct table query
-      const { data: permissionsData, error: permissionsError } = await supabase
+      const { data: permissionsData, error: permissionsError } = await supabaseExtended
         .rpc('get_user_permissions', { user_id: user.id });
 
       if (permissionsError) {
         console.error("Error fetching user permissions:", permissionsError);
       }
 
-      setRole((roleData?.role || 'user') as UserRole);
+      // Use typecasting to ensure we can work with the role safely
+      setRole(((roleData?.role || 'user') as UserRole));
       setPermissions(permissionsData || []);
     } catch (error) {
       console.error("Error in useUserRole:", error);
@@ -86,7 +87,7 @@ export function useUserRole() {
   // Update a user's role
   const updateUserRole = async (userId: string, newRole: UserRole) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseExtended
         .rpc('update_user_role', { 
           p_user_id: userId,
           p_role: newRole
@@ -109,7 +110,7 @@ export function useUserRole() {
     permission: { can_add?: boolean; can_edit?: boolean; can_delete?: boolean }
   ) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseExtended
         .rpc('update_user_permission', {
           p_user_id: userId,
           p_table_name: tableName,
@@ -131,7 +132,7 @@ export function useUserRole() {
   // Restore a soft-deleted record
   const restoreRecord = async (tableName: string, recordId: string) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseExtended
         .rpc('restore_record', { 
           p_table_name: tableName, 
           p_record_id: recordId 

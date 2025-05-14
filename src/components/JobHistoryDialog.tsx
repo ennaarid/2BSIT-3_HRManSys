@@ -37,9 +37,29 @@ interface JobHistoryDialogProps {
   };
 }
 
-const JobHistoryDialog = ({ open, onClose, employee }: JobHistoryDialogProps) => {
+// Alternative props format for the Dashboard component
+export interface AlternativeJobHistoryProps {
+  empno: string;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const JobHistoryDialog = (props: JobHistoryDialogProps | AlternativeJobHistoryProps) => {
   const [jobHistory, setJobHistory] = useState<JobHistory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Convert alternative props format to standard format
+  const { open, onClose, employee } = 'isOpen' in props 
+    ? { 
+        open: props.isOpen, 
+        onClose: props.onClose, 
+        employee: { 
+          empno: props.empno,
+          firstName: '',
+          lastName: ''
+        } 
+      } 
+    : props;
 
   useEffect(() => {
     if (open && employee.empno) {
@@ -97,10 +117,12 @@ const JobHistoryDialog = ({ open, onClose, employee }: JobHistoryDialogProps) =>
               <p className="text-sm font-medium">Employee Number</p>
               <p>{employee.empno}</p>
             </div>
-            <div>
-              <p className="text-sm font-medium">Employee Name</p>
-              <p>{`${employee.lastName}, ${employee.firstName}`}</p>
-            </div>
+            {'firstName' in employee && 'lastName' in employee && (
+              <div>
+                <p className="text-sm font-medium">Employee Name</p>
+                <p>{`${employee.lastName}, ${employee.firstName}`}</p>
+              </div>
+            )}
           </div>
 
           <Table>

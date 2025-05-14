@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/Layout/DashboardLayout";
 import {
@@ -34,6 +33,36 @@ type DeletedRecord = {
   deletedAt: string;
 };
 
+type EmployeeRecord = {
+  empno: string;
+  firstname?: string | null;
+  lastname?: string | null;
+  status?: string;
+  stamp?: string;
+};
+
+type JobRecord = {
+  jobcode: string;
+  jobdesc?: string | null;
+  status?: string;
+  stamp?: string;
+};
+
+type DepartmentRecord = {
+  deptcode: string;
+  deptname?: string | null;
+  status?: string;
+  stamp?: string;
+};
+
+type JobHistoryRecord = {
+  empno: string;
+  jobcode: string;
+  effdate: string;
+  status?: string;
+  stamp?: string;
+};
+
 export default function DeletedRecords() {
   const { isAdmin, restoreRecord } = useUserRole();
   const [activeTab, setActiveTab] = useState('employee');
@@ -43,22 +72,6 @@ export default function DeletedRecords() {
   const fetchDeletedRecords = async (tableName: string) => {
     try {
       setLoading(true);
-      
-      // Function to get a display name for the record
-      const getDisplayName = (record: any): string => {
-        switch (tableName) {
-          case 'employee':
-            return `${record.firstname || ''} ${record.lastname || ''} (${record.empno})`;
-          case 'job':
-            return `${record.jobdesc || record.jobcode} (${record.jobcode})`;
-          case 'department':
-            return `${record.deptname || record.deptcode} (${record.deptcode})`;
-          case 'jobhistory':
-            return `Employee: ${record.empno}, Job: ${record.jobcode}, Date: ${new Date(record.effdate).toLocaleDateString()}`;
-          default:
-            return 'Unknown Record';
-        }
-      };
       
       // Get all records with status 'deleted'
       const { data, error } = await supabase
@@ -75,22 +88,38 @@ export default function DeletedRecords() {
 
       const formattedRecords: DeletedRecord[] = data.map(record => {
         let recordId = '';
+        let displayName = 'Unknown Record';
         
-        if (tableName === 'employee' && 'empno' in record) {
-          recordId = record.empno;
-        } else if (tableName === 'job' && 'jobcode' in record) {
-          recordId = record.jobcode;
-        } else if (tableName === 'department' && 'deptcode' in record) {
-          recordId = record.deptcode;
-        } else if (tableName === 'jobhistory' && 'empno' in record && 'jobcode' in record && 'effdate' in record) {
-          recordId = `${record.empno},${record.jobcode},${record.effdate}`;
+        // Type narrowing based on tableName
+        if (tableName === 'employee') {
+          const empRecord = record as unknown as EmployeeRecord;
+          recordId = empRecord.empno;
+          displayName = `${empRecord.lastname || ''} ${empRecord.firstname || ''} (${empRecord.empno})`;
+        } 
+        else if (tableName === 'job') {
+          const jobRecord = record as unknown as JobRecord;
+          recordId = jobRecord.jobcode;
+          displayName = `${jobRecord.jobdesc || jobRecord.jobcode} (${jobRecord.jobcode})`;
+        } 
+        else if (tableName === 'department') {
+          const deptRecord = record as unknown as DepartmentRecord;
+          recordId = deptRecord.deptcode;
+          displayName = `${deptRecord.deptname || deptRecord.deptcode} (${deptRecord.deptcode})`;
+        } 
+        else if (tableName === 'jobhistory') {
+          const jhRecord = record as unknown as JobHistoryRecord;
+          recordId = `${jhRecord.empno},${jhRecord.jobcode},${jhRecord.effdate}`;
+          displayName = `Employee: ${jhRecord.empno}, Job: ${jhRecord.jobcode}, Date: ${new Date(jhRecord.effdate).toLocaleDateString()}`;
         }
+        
+        // Use a type assertion to handle the stamp property
+        const recordWithStamp = record as { stamp?: string };
         
         return {
           id: recordId,
-          displayName: getDisplayName(record),
+          displayName: displayName,
           tableName,
-          deletedAt: record.stamp || new Date().toISOString()
+          deletedAt: recordWithStamp.stamp || new Date().toISOString()
         };
       });
 

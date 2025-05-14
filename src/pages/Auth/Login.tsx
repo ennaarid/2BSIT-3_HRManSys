@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -15,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { supabaseExtended } from "@/integrations/supabase/extendedClient";
 import { toast } from "sonner";
 
 // Define the form schema
@@ -51,7 +53,7 @@ const Login = () => {
   // Check if the user account is blocked
   const checkIfBlocked = async (userId: string) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseExtended
         .rpc('get_user_role_by_id', { user_id: userId })
         .single();
 
@@ -59,7 +61,7 @@ const Login = () => {
         return false;
       }
 
-      return data?.role === 'blocked';
+      return data && data.role === 'blocked';
     } catch (error) {
       console.error("Error checking if user is blocked:", error);
       return false;
