@@ -19,7 +19,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { useUserRole } from "@/hooks/useUserRole";
-import { useMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type Props = {
   children: ReactNode;
@@ -30,7 +30,7 @@ const DashboardLayout = ({ children }: Props) => {
   const { isAdmin } = useUserRole();
   const navigate = useNavigate();
   const location = useLocation();
-  const { isMobile } = useMobile();
+  const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   
   useEffect(() => {
