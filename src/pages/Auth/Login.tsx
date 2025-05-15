@@ -1,177 +1,126 @@
 
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
-import { supabaseExtended } from "@/integrations/supabase/extendedClient";
-import { toast } from "sonner";
-
-// Define the form schema
-const formSchema = z.object({
-  email: z
-    .string()
-    .min(1, { message: "Email is required" })
-    .email({ message: "Invalid email address" }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
-});
 
 const Login = () => {
-  const { signIn, user } = useAuth();
-  const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isBlocked, setIsBlocked] = useState(false);
-
-  // Check if user is already logged in
-  useEffect(() => {
-    if (user) {
-      navigate("/dashboard");
-    }
-  }, [user, navigate]);
-
-  // Create form
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
+  const [credentials, setCredentials] = useState({
+    email: "",
+    password: "",
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const { signIn } = useAuth();
 
-  // Check if the user account is blocked
-  const checkIfBlocked = async (userId: string) => {
-    try {
-      const { data, error } = await supabaseExtended
-        .rpc('get_user_role_by_id', { user_id: userId })
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        return false;
-      }
-
-      return data && data.role === 'blocked';
-    } catch (error) {
-      console.error("Error checking if user is blocked:", error);
-      return false;
-    }
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setCredentials((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  // Form submission handler
-  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Basic validation
+    if (!credentials.email || !credentials.password) {
+      return;
+    }
+    
+    setIsLoading(true);
+    
     try {
-      setIsSubmitting(true);
-      setIsBlocked(false);
-
-      // Sign in with email and password using Supabase directly to check for blocked status
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password,
-      });
-
-      if (authError) {
-        throw authError;
-      }
-
-      const userId = authData.user?.id;
-
-      // Check if the user is blocked
-      if (userId) {
-        const blocked = await checkIfBlocked(userId);
-        
-        if (blocked) {
-          setIsBlocked(true);
-          // Sign out if user is blocked
-          await supabase.auth.signOut();
-          toast.error("Your account has been blocked. Please contact an administrator.");
-          return;
-        }
-      }
-
-      // User is not blocked, proceed with login
-      toast.success("Successfully logged in!");
-      navigate("/dashboard");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to login");
+      await signIn(credentials.email, credentials.password);
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="container flex h-screen w-screen flex-col items-center justify-center">
-      <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
-        <div className="flex flex-col space-y-2 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">Welcome back</h1>
-          <p className="text-sm text-muted-foreground">
-            Enter your credentials to sign in to your account
-          </p>
-        </div>
-
-        {isBlocked && (
-          <div className="p-3 rounded-md bg-red-50 border border-red-200 text-red-800">
-            Your account is blocked. Please contact an administrator.
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <div className="flex justify-center mb-4">
+            <img 
+              src="/lovable-uploads/c6ad52d7-3179-4282-8dd9-9206e34e4368.png" 
+              alt="Celadon Peak Logo" 
+              className="h-16 w-auto"
+            />
           </div>
-        )}
-
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input placeholder="email@example.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+          <CardTitle className="text-2xl font-bold text-center">Login to your account</CardTitle>
+          <CardDescription className="text-center">
+            Enter your credentials to access the HR dashboard
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="john.doe@example.com"
+                value={credentials.email}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <Link to="/forgot-password" className="text-xs text-hr-blue hover:underline">
+                  Forgot password?
+                </Link>
+              </div>
+              <div className="relative">
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={credentials.password}
+                  onChange={handleInputChange}
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </Button>
+              </div>
+            </div>
+            <Button type="submit" className="w-full bg-hr-blue hover:bg-blue-700" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Logging in...
+                </>
+              ) : (
+                "Login"
               )}
-            />
-
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input type="password" placeholder="******" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <Button
-              type="submit"
-              className="w-full bg-hr-blue hover:bg-blue-700"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Signing in..." : "Sign in"}
             </Button>
           </form>
-        </Form>
-
-        <div className="text-center text-sm">
-          Don't have an account?{" "}
-          <Link to="/signup" className="text-blue-600 hover:underline">
-            Sign up
-          </Link>
-        </div>
-      </div>
+        </CardContent>
+        <CardFooter className="flex flex-col items-center justify-center">
+          <p className="mt-2 text-center text-sm">
+            Don't have an account?{" "}
+            <Link to="/signup" className="text-hr-blue hover:underline">
+              Sign up
+            </Link>
+          </p>
+        </CardFooter>
+      </Card>
     </div>
   );
 };

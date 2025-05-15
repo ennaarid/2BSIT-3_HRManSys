@@ -13,8 +13,6 @@ import Departments from "./pages/Dashboard/Departments";
 import Jobs from "./pages/Dashboard/Jobs";
 import DatabaseTables from "./pages/Dashboard/DatabaseTables";
 import DashboardSummary from "./pages/Dashboard/Summary";
-import UserManagement from "./pages/Dashboard/UserManagement";
-import DeletedRecords from "./pages/Dashboard/DeletedRecords";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./hooks/useAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -63,16 +61,6 @@ const App = () => {
                 <Route path="/dashboard/database" element={
                   <ProtectedRoute>
                     <DatabaseTables />
-                  </ProtectedRoute>
-                } />
-                <Route path="/dashboard/user-management" element={
-                  <ProtectedRoute>
-                    <UserManagement />
-                  </ProtectedRoute>
-                } />
-                <Route path="/dashboard/deleted-records" element={
-                  <ProtectedRoute>
-                    <DeletedRecords />
                   </ProtectedRoute>
                 } />
                 <Route path="*" element={<NotFound />} />

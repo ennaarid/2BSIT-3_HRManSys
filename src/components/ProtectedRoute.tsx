@@ -1,51 +1,29 @@
 
-import { ReactNode, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
-import { useUserRole } from "../hooks/useUserRole";
-import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { Loader2 } from 'lucide-react';
 
-type ProtectedRouteProps = {
-  children: ReactNode;
-};
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+}
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { user, loading: authLoading } = useAuth();
-  const { isBlocked, loading: roleLoading } = useUserRole();
-  const navigate = useNavigate();
-  
-  useEffect(() => {
-    // Check if authentication is complete
-    if (!authLoading && !user) {
-      toast.error("Please log in to access this page");
-      navigate("/login");
-      return;
-    }
-    
-    // Check if user role is loaded and user is blocked
-    if (!roleLoading && user && isBlocked) {
-      toast.error("Your account has been blocked. Please contact an administrator.");
-      navigate("/login");
-    }
-  }, [user, authLoading, isBlocked, roleLoading, navigate]);
+  const { user, loading } = useAuth();
 
-  // Show loading while checking authentication or role
-  if (authLoading || roleLoading) {
+  if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <Loader2 className="h-6 w-6 animate-spin text-green-500" />
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
       </div>
     );
   }
 
-  // If user is authenticated and not blocked, render children
-  if (user && !isBlocked) {
-    return <>{children}</>;
+  if (!user) {
+    return <Navigate to="/login" />;
   }
 
-  // This should not be visible (redirect happens in the useEffect)
-  return null;
+  return <>{children}</>;
 };
 
 export default ProtectedRoute;
