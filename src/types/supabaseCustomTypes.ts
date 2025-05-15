@@ -26,12 +26,14 @@ export interface ExtendedDatabase extends Database {
           role?: string;
           updated_at?: string;
         };
-        Relationships: [{
-          foreignKeyName: "user_roles_user_id_fkey";
-          columns: ["user_id"];
-          referencedRelation: "users";
-          referencedColumns: ["id"];
-        }];
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       user_permissions: {
         Row: {
@@ -59,12 +61,14 @@ export interface ExtendedDatabase extends Database {
           can_delete?: boolean;
           updated_at?: string;
         };
-        Relationships: [{
-          foreignKeyName: "user_permissions_user_id_fkey";
-          columns: ["user_id"];
-          referencedRelation: "users";
-          referencedColumns: ["id"];
-        }];
+        Relationships: [
+          {
+            foreignKeyName: "user_permissions_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
       };
     };
     // Include other properties from Database type
