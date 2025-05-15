@@ -73,7 +73,7 @@ export interface ExtendedDatabase extends Database {
     Enums: Database['public']['Enums'];
     CompositeTypes: Database['public']['CompositeTypes'];
   };
-};
+}
 
 // Extended types for RPCs
 export interface RPCReturnTypes {
