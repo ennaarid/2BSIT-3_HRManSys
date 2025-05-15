@@ -34,14 +34,20 @@ export type Database = {
         Row: {
           deptcode: string
           deptname: string | null
+          stamp: string | null
+          status: string | null
         }
         Insert: {
           deptcode: string
           deptname?: string | null
+          stamp?: string | null
+          status?: string | null
         }
         Update: {
           deptcode?: string
           deptname?: string | null
+          stamp?: string | null
+          status?: string | null
         }
         Relationships: []
       }
@@ -54,6 +60,8 @@ export type Database = {
           hiredate: string | null
           lastname: string | null
           sepdate: string | null
+          stamp: string | null
+          status: string | null
         }
         Insert: {
           birthdate?: string | null
@@ -63,6 +71,8 @@ export type Database = {
           hiredate?: string | null
           lastname?: string | null
           sepdate?: string | null
+          stamp?: string | null
+          status?: string | null
         }
         Update: {
           birthdate?: string | null
@@ -72,6 +82,8 @@ export type Database = {
           hiredate?: string | null
           lastname?: string | null
           sepdate?: string | null
+          stamp?: string | null
+          status?: string | null
         }
         Relationships: []
       }
@@ -79,14 +91,20 @@ export type Database = {
         Row: {
           jobcode: string
           jobdesc: string | null
+          stamp: string | null
+          status: string | null
         }
         Insert: {
           jobcode: string
           jobdesc?: string | null
+          stamp?: string | null
+          status?: string | null
         }
         Update: {
           jobcode?: string
           jobdesc?: string | null
+          stamp?: string | null
+          status?: string | null
         }
         Relationships: []
       }
@@ -97,6 +115,8 @@ export type Database = {
           empno: string
           jobcode: string
           salary: number | null
+          stamp: string | null
+          status: string | null
         }
         Insert: {
           deptcode?: string | null
@@ -104,6 +124,8 @@ export type Database = {
           empno: string
           jobcode: string
           salary?: number | null
+          stamp?: string | null
+          status?: string | null
         }
         Update: {
           deptcode?: string | null
@@ -111,6 +133,8 @@ export type Database = {
           empno?: string
           jobcode?: string
           salary?: number | null
+          stamp?: string | null
+          status?: string | null
         }
         Relationships: [
           {
@@ -278,12 +302,76 @@ export type Database = {
           },
         ]
       }
+      user_profiles: {
+        Row: {
+          can_add_department: boolean
+          can_add_employee: boolean
+          can_add_job: boolean
+          can_add_jobhistory: boolean
+          can_delete_department: boolean
+          can_delete_employee: boolean
+          can_delete_job: boolean
+          can_delete_jobhistory: boolean
+          can_edit_department: boolean
+          can_edit_employee: boolean
+          can_edit_job: boolean
+          can_edit_jobhistory: boolean
+          created_at: string | null
+          full_name: string | null
+          id: string
+          role: string
+        }
+        Insert: {
+          can_add_department?: boolean
+          can_add_employee?: boolean
+          can_add_job?: boolean
+          can_add_jobhistory?: boolean
+          can_delete_department?: boolean
+          can_delete_employee?: boolean
+          can_delete_job?: boolean
+          can_delete_jobhistory?: boolean
+          can_edit_department?: boolean
+          can_edit_employee?: boolean
+          can_edit_job?: boolean
+          can_edit_jobhistory?: boolean
+          created_at?: string | null
+          full_name?: string | null
+          id: string
+          role?: string
+        }
+        Update: {
+          can_add_department?: boolean
+          can_add_employee?: boolean
+          can_add_job?: boolean
+          can_add_jobhistory?: boolean
+          can_delete_department?: boolean
+          can_delete_employee?: boolean
+          can_delete_job?: boolean
+          can_delete_jobhistory?: boolean
+          can_edit_department?: boolean
+          can_edit_employee?: boolean
+          can_edit_job?: boolean
+          can_edit_jobhistory?: boolean
+          created_at?: string | null
+          full_name?: string | null
+          id?: string
+          role?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_blocked: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
