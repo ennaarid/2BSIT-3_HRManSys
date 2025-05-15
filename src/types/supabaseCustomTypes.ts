@@ -28,10 +28,10 @@ export interface ExtendedDatabase extends Database {
         };
         Relationships: [
           {
-            foreignKeyName: "user_roles_user_id_fkey";
-            columns: ["user_id"];
-            referencedRelation: "users";
-            referencedColumns: ["id"];
+            foreignKeyName: "user_roles_user_id_fkey",
+            columns: ["user_id"],
+            referencedRelation: "users",
+            referencedColumns: ["id"]
           }
         ];
       };
@@ -63,10 +63,10 @@ export interface ExtendedDatabase extends Database {
         };
         Relationships: [
           {
-            foreignKeyName: "user_permissions_user_id_fkey";
-            columns: ["user_id"];
-            referencedRelation: "users";
-            referencedColumns: ["id"];
+            foreignKeyName: "user_permissions_user_id_fkey",
+            columns: ["user_id"],
+            referencedRelation: "users",
+            referencedColumns: ["id"]
           }
         ];
       };
