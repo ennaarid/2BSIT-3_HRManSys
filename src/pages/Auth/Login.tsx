@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 const Login = () => {
   const [credentials, setCredentials] = useState({
@@ -15,7 +17,8 @@ const Login = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const { signIn } = useAuth();
+  const [selectedRole, setSelectedRole] = useState<"user" | "admin">("user");
+  const { signIn, user } = useAuth();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -30,13 +33,14 @@ const Login = () => {
     
     // Basic validation
     if (!credentials.email || !credentials.password) {
+      toast.error("Please fill in all fields");
       return;
     }
     
     setIsLoading(true);
     
     try {
-      await signIn(credentials.email, credentials.password);
+      await signIn(credentials.email, credentials.password, selectedRole);
     } finally {
       setIsLoading(false);
     }
@@ -100,6 +104,26 @@ const Login = () => {
                 </Button>
               </div>
             </div>
+            
+            <div className="space-y-2">
+              <Label>Login as</Label>
+              <RadioGroup 
+                defaultValue="user" 
+                className="flex gap-4"
+                value={selectedRole}
+                onValueChange={(value) => setSelectedRole(value as "user" | "admin")}
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="user" id="user" />
+                  <Label htmlFor="user">User</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="admin" id="admin" />
+                  <Label htmlFor="admin">Admin</Label>
+                </div>
+              </RadioGroup>
+            </div>
+            
             <Button type="submit" className="w-full bg-hr-blue hover:bg-blue-700" disabled={isLoading}>
               {isLoading ? (
                 <>

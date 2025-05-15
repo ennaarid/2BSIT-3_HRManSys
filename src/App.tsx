@@ -13,6 +13,7 @@ import Departments from "./pages/Dashboard/Departments";
 import Jobs from "./pages/Dashboard/Jobs";
 import DatabaseTables from "./pages/Dashboard/DatabaseTables";
 import DashboardSummary from "./pages/Dashboard/Summary";
+import EmployeeDashboard from "./pages/EmployeeDashboard";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./hooks/useAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -33,6 +34,8 @@ const App = () => {
                 <Route path="/" element={<Navigate to="/login" replace />} />
                 <Route path="/signup" element={<SignUp />} />
                 <Route path="/login" element={<Login />} />
+                
+                {/* Admin Routes */}
                 <Route path="/dashboard" element={
                   <ProtectedRoute>
                     <DashboardSummary />
@@ -63,6 +66,24 @@ const App = () => {
                     <DatabaseTables />
                   </ProtectedRoute>
                 } />
+                
+                {/* Employee Routes */}
+                <Route path="/employee-dashboard" element={
+                  <ProtectedRoute>
+                    <EmployeeDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/employee-dashboard/profile" element={
+                  <ProtectedRoute>
+                    <EmployeeDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/employee-dashboard/job-history" element={
+                  <ProtectedRoute>
+                    <EmployeeDashboard />
+                  </ProtectedRoute>
+                } />
+                
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </TooltipProvider>

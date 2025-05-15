@@ -9,7 +9,7 @@ type AuthContextType = {
   session: Session | null;
   user: User | null;
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string, role?: "user" | "admin") => Promise<void>;
   signOut: () => Promise<void>;
   loading: boolean;
 };
@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, role: "user" | "admin" = "user") => {
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -78,8 +78,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw error;
       }
 
+      // Check if the user is blocked
+      const { data: profileData, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('role')
+        .eq('id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+
+      if (profileError) {
+        throw profileError;
+      }
+
+      if (profileData.role === 'blocked') {
+        await supabase.auth.signOut();
+        throw new Error('Your account has been blocked. Please contact the administrator.');
+      }
+
+      // Check if the user is trying to access the right interface
+      if (profileData.role !== role && profileData.role !== 'admin') {
+        await supabase.auth.signOut();
+        throw new Error(`You don't have ${role} privileges. Please use the correct login option.`);
+      }
+
       toast.success("Successfully logged in!");
-      navigate('/dashboard');
+      
+      // Redirect based on role
+      if (role === 'admin' || profileData.role === 'admin') {
+        navigate('/dashboard');
+      } else {
+        navigate('/employee-dashboard');
+      }
     } catch (error: any) {
       toast.error(error.message || "An error occurred during login");
     }
